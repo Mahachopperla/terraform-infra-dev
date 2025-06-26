@@ -1,6 +1,6 @@
 module "vpc" {
     #we can use this modules directly from git repo using "syntax: "git::git-repo-url?ref=main""
-    source = "git::https://github.com/Mahachopperla/terrafrom-vpc-module.git?ref=main"
+    source = "git::https://github.com/Mahachopperla/terraform-vpc-module.git?ref=main"
     project = var.main_project
     environment = var.main_environment
     public_subnet_cidr = ["10.0.1.0/24", "10.0.2.0/24"]
