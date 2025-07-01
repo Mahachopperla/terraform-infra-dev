@@ -3,9 +3,9 @@
   
 # }
 
-output "vpc_id" {
-    value = module.vpc.vpc_id
-  }
+# output "vpc_id" {
+#     value = module.vpc.vpc_id
+#   }
 
 #once output is captured we can store it in ssm parameter store
 
