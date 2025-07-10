@@ -6,4 +6,4 @@
 
 # this script installs ansible and pull ansible roles into the server which is getting created
 dnf install ansible -y
-ansible-pull -U https://github.com/Mahachopperla/roboshop-ansible-roles.git -e component=$1 main.yaml
+ansible-pull -U https://github.com/Mahachopperla/ansible-roles-for-terraform.git -e component=$1 -e env=$2 main.yaml

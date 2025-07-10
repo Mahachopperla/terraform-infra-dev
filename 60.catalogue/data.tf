@@ -32,6 +32,9 @@ data "aws_ssm_parameter" "vpc_id" {
   name = "/${var.project}/${var.environment}/vpc_id"
 }
 
+data "aws_ssm_parameter" "alb_listener_arn" {
+  name = "/${var.project}/${var.environment}/alb_listener_Arn"
+}
 # in parameter store we have this public subnets as string
 # 				-> we need to convert it into list and get first subnet id and create ec2 instance in that subnet
 # 				-> so in data source -> get entire list of public subents

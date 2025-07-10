@@ -1,11 +1,14 @@
+
 variable "project" {
   type = string
   default = "roboshop"
+  
 }
 
 variable "environment" {
   type = string
   default = "dev"
+  
 }
 variable "hosted_zone_id" {
     type = string
@@ -17,3 +20,4 @@ variable "hosted_zone_name" {
   type = string
   default = "robotshop.site"
 }
+
