@@ -40,7 +40,7 @@ resource "aws_lb_listener" "frontend_alb" {
 
 resource "aws_route53_record" "frontend_alb_record" {
   zone_id = var.hosted_zone_id #this is the zone id of ur domain robotshop.site . u will get from aws portal
-  name    = "*.${var.hosted_zone_name}" # this is also from aws portal
+  name    = "dev.${var.hosted_zone_name}" # this is also from aws portal
   type    = "A"
   allow_overwrite = true
 
