@@ -1,41 +1,26 @@
 resource "aws_cloudfront_distribution" "roboshop" {
   origin {
-    domain_name = "your-alb-dns-name" # Replace with your ALB's DNS name
-    origin_id   = "alb_origin"
+    domain_name = "dev.${var.hosted_zone_name}" # Replace with your ALB's DNS name
+    origin_id   = "dev.${var.hosted_zone_name}"
 
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "http-only" # or "https-only", "match-viewer"
+      origin_protocol_policy = "https-only" # or "http-only", "match-viewer"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
 
   enabled             = true
-  is_ipv6_enabled     = true
-  comment             = "Some comment"
-  default_root_object = "index.html"
 
-  logging_config {
-    include_cookies = false
-    bucket          = "mylogs.s3.amazonaws.com"
-    prefix          = "myprefix"
-  }
-
-  aliases = ["mysite.example.com", "yoursite.example.com"]
+  aliases = ["cdn.${var.hosted_zone_name}"] # give ur cdn domain name 
 
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = local.s3_origin_id
+    target_origin_id = "dev.${var.hosted_zone_name}"
 
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
+    cache_policy_id  = local.caching_disable
 
     viewer_protocol_policy = "allow-all"
     min_ttl                = 0
@@ -45,48 +30,19 @@ resource "aws_cloudfront_distribution" "roboshop" {
 
   # Cache behavior with precedence 0
   ordered_cache_behavior {
-    path_pattern     = "/content/immutable/*"
+    path_pattern     = "/media/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
-    target_origin_id = local.s3_origin_id
-
-    forwarded_values {
-      query_string = false
-      headers      = ["Origin"]
-
-      cookies {
-        forward = "none"
-      }
-    }
+    target_origin_id = "dev.${var.hosted_zone_name}"
+    cache_policy_id  = local.caching_enable
 
     min_ttl                = 0
     default_ttl            = 86400
     max_ttl                = 31536000
     compress               = true
-    viewer_protocol_policy = "redirect-to-https"
+    viewer_protocol_policy = "https-only"
   }
 
-  # Cache behavior with precedence 1
-  ordered_cache_behavior {
-    path_pattern     = "/content/*"
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = local.s3_origin_id
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-    compress               = true
-    viewer_protocol_policy = "redirect-to-https"
-  }
 
   price_class = "PriceClass_200"
 
@@ -97,11 +53,26 @@ resource "aws_cloudfront_distribution" "roboshop" {
     }
   }
 
-  tags = {
-    Environment = "production"
-  }
+  tags = merge(
+    local.common_Tags,{
+        Name = "${var.project}-${var.environment}"
+    }
+  )
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn = local.certificate_arn
+    ssl_support_method = "sni-only"
+  }
+}
+
+resource "aws_route53_record" "frontend_alb" {
+  zone_id = var.hosted_zone_id
+  name    = "cdn.${var.hosted_zone_name}" #dev.daws84s.site
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.roboshop.domain_name
+    zone_id                = aws_cloudfront_distribution.roboshop.hosted_zone_id
+    evaluate_target_health = true
   }
 }
